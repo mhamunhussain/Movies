@@ -11,7 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "api/v1/movies?title=fight club",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -19,7 +19,7 @@
     "Movies.Api": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "api/v1/movies",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
