@@ -1,21 +1,19 @@
-﻿using FluentValidation;
-using Movies.Api.Models;
+﻿using System.Linq;
 
 namespace Movies.Api.Validators
 {
-    public class MovieRequestValidator : AbstractValidator<MovieFilterCriteria>
+    public class MovieRequestValidator : IMovieRequestValidator
     {
-        public MovieRequestValidator()
+        public bool Validate(string title, int? yearOfRelease, string genres)
         {
-            RuleFor(request => request)
-                .Must(request => 
-                    !string.IsNullOrWhiteSpace(request.Title) ||
-                    !string.IsNullOrWhiteSpace(request.Genre) ||
-                    IsValidYear(request.YearOfRelease))
-                .WithMessage("request must contain valid filters");
-        }
+            if (string.IsNullOrWhiteSpace(title) &&
+                yearOfRelease == null &&
+                string.IsNullOrWhiteSpace(genres))
+            {
+                return false;
+            }
 
-        private static bool IsValidYear(string yearOfRelease) =>
-            int.TryParse(yearOfRelease, out var _);
+            return true;
+        }
     }
 }

@@ -3,7 +3,7 @@
     public class MovieFilterCriteria
     {
         public string Title { get; set; }
-        public string YearOfRelease { get; set; }
-        public string Genre { get; set; }
+        public int? YearOfRelease { get; set; }
+        public string Genres { get; set; }
     }
 }

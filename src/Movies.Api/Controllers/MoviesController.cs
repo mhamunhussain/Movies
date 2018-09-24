@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Movies.Api.Models;
 using Movies.Api.Repositories;
-using System;
+using Movies.Api.Validators;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Movies.Api.Controllers
@@ -14,12 +14,12 @@ namespace Movies.Api.Controllers
     public class MoviesController : Controller
     {
         private readonly IMovieRepository _movieRepository;
-        private readonly IValidator<MovieFilterCriteria> _movieRequestValidator;
+        private readonly IMovieRequestValidator _movieRequestValidator;
         private readonly IMapper _mapper;
 
         public MoviesController(
-            IMovieRepository movieRepository, 
-            IValidator<MovieFilterCriteria> movieRequestValidator,
+            IMovieRepository movieRepository,
+            IMovieRequestValidator movieRequestValidator,
             IMapper mapper)
         {
             _movieRepository = movieRepository;
@@ -28,30 +28,40 @@ namespace Movies.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] string title, [FromQuery] string yearOfRelease, [FromQuery] string genre)
+        public async Task<IActionResult> Get(
+            [FromQuery] string title, 
+            [FromQuery] int? yearOfRelease, 
+            [FromQuery] string genre)
         {
-            var criteria = new MovieFilterCriteria
-            {
-                Title = title,
-                Genre = genre,
-                YearOfRelease = yearOfRelease
-            };
+            var validRequest = _movieRequestValidator.Validate(title, yearOfRelease, genre);
 
-            var validationResult = _movieRequestValidator.Validate(criteria);
-
-            if (!validationResult.IsValid)
+            if (!validRequest)
                 return BadRequest();
 
-            var movies = await _movieRepository.GetAsync(criteria);
+            var movies = await _movieRepository.GetAsync(new MovieFilterCriteria
+            {
+                Title = title, 
+                YearOfRelease = yearOfRelease,
+                Genres = genre
+            });
 
-            return Ok(_mapper.Map<IEnumerable<MovieViewModel>>(movies));
+            if (!movies.Any())
+                return NotFound();
+
+            return Ok(_mapper.Map<IEnumerable<MovieViewModel>>(
+                movies.OrderBy(m => m.AverageRating)
+                      .ThenBy(m => m.Title)));
         }
 
         [Route("top-ranked")]
         [HttpGet]
-        public Task<IActionResult> GetTopRanked()
+        public async Task<IActionResult> GetTopRanked()
         {
-            throw new NotImplementedException();
+            var movies = await _movieRepository.GetTopRanked(null);
+
+            return Ok(_mapper.Map<IEnumerable<MovieViewModel>>(
+                movies.OrderByDescending(o => o.AverageRating)
+                      .ThenBy(o => o.Title)));
         }
     }
 }

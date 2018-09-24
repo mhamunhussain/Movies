@@ -8,6 +8,6 @@ namespace Movies.Api.Models
         public string Title { get; set; }
         public int YearOfRelease { get; set; }
         public int RunningTime { get; set; }
-        public int AverageRating { get; set; }
+        public double AverageRating { get; set; }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Movies.Api.Data;
-using Movies.Api.Models;
 using Movies.Api.Repositories;
 using Movies.Api.Validators;
 
@@ -25,28 +23,28 @@ namespace Movies.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAutoMapper();
-
             if (Environment.IsDevelopment())
-                services.AddDbContext<ApplicationContext>(options =>
-                    options.UseSqlite("Data Source=Movies.db"));
-            else
-                services.AddDbContext<ApplicationContext>(options =>
-                    options.UseSqlServer("connection string from config goes here"));
+                services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlite("DataSource=Movies.db"));
 
-            services.AddTransient<IValidator<MovieFilterCriteria>, MovieRequestValidator>();
+            services.AddTransient<IMovieRequestValidator, MovieRequestValidator>();
             services.AddTransient<IMovieRepository, MovieRepository>();
+            services.AddTransient<IMovieRatingRepository, MovieRatingRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IDatabaseInitialiser, DatabaseInitialiser>();
 
+            services.AddAutoMapper();
             services.AddMvc();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IDatabaseInitialiser databaseInitialiser)
         {
             if (env.IsDevelopment())
+            {
                 app.UseDeveloperExceptionPage();
+                databaseInitialiser.Initialise();
+            }
 
-            databaseInitialiser.Initialise();
             app.UseMvc();
         }
     }
